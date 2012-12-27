@@ -55,7 +55,7 @@ namespace Lithium
         {
             if (ClientBox.Dispatcher.CheckAccess())
                 {
-                    ClientBox.Text += msg;
+                    ClientBox.AppendText(msg);
                     return;
                 }
                 else
@@ -112,7 +112,6 @@ namespace Lithium
                 ShowMessage(e.ToString());
             }
         }
-
         private void ConnectCallback(IAsyncResult ar)
         {
             try
@@ -227,6 +226,15 @@ namespace Lithium
 
         private void Button_Loaded_1(object sender, RoutedEventArgs e)
         {
+            this.StartClient();
+        }
+
+        private void Lit_Loaded(object sender, RoutedEventArgs e)
+        {
+            ClientBox.Document.Blocks.Clear();
+            NameBox.Document.Blocks.Clear();
+            ClientBox.IsReadOnly = true;
+            NameBox.IsReadOnly = true;
             this.StartClient();
         }
     }
