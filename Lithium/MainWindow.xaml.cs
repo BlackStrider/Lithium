@@ -29,7 +29,10 @@ namespace Lithium
         {
             if (CheckUserLogin(UsernameBox.Text, PasswordBox.Password))
             {
-                Window1 AppWindow = new Window1();
+                ChatWindow AppWindow = new ChatWindow();
+                ServerWindow ServerWind = new ServerWindow();
+                ServerWind.Show();
+                ServerWind.Start();
                 AppWindow.Show();
                 this.Close();
             }
