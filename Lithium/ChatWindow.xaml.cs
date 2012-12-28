@@ -28,9 +28,11 @@ namespace Lithium
         }
 
         private delegate void TextChanger();
+        Socket client = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
 
         private void Button_Click_1(object sender, RoutedEventArgs e)
         {
+            Send(client, "This is a test<EOF>");
         }
 
         public void ShowMessage(string message)
@@ -65,14 +67,7 @@ namespace Lithium
         }
 
         private const int port = 11000;
-
-        // ManualResetEvent instances signal completion.
-        private static ManualResetEvent connectDone =
-            new ManualResetEvent(false);
-        private static ManualResetEvent sendDone =
-            new ManualResetEvent(false);
-        private static ManualResetEvent receiveDone =
-            new ManualResetEvent(false);
+        bool ConnectionDone = false;
 
         // The response from the remote device.
         private static String response = String.Empty;
@@ -82,36 +77,31 @@ namespace Lithium
             // Connect to a remote device.
             try
             {
-                IPAddress ipAddress = IPAddress.Parse("127.0.0.1");
+
+                IPAddress ipAddress = IPAddress.Parse("10.44.5.33");
                 IPEndPoint remoteEP = new IPEndPoint(ipAddress, port);
-
-                // Create a TCP/IP socket.
-                Socket client = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
-
+        
                 // Connect to the remote endpoint.
                 client.BeginConnect(remoteEP, new AsyncCallback(ConnectCallback), client);
-                connectDone.WaitOne();
 
-                // Send test data to the remote device.
-                Send(client, "This is a test<EOF>");
-                sendDone.WaitOne();
+                if (ConnectionDone == true)
+                {
+                    // Receive the response from the remote device.
+                    //Receive(client);
 
-                // Receive the response from the remote device.
-                Receive(client);
-                receiveDone.WaitOne();
+                    ShowMessage("Response received : " + response);
 
-                ShowMessage("Response received : {0}" + response);
-
-                // Release the socket.
-                client.Shutdown(SocketShutdown.Both);
-                client.Close();
-
+                    // Release the socket.
+                    //client.Shutdown(SocketShutdown.Both);
+                    //client.Close();
+                }
             }
             catch (Exception e)
             {
                 ShowMessage(e.ToString());
             }
         }
+
         private void ConnectCallback(IAsyncResult ar)
         {
             try
@@ -122,14 +112,14 @@ namespace Lithium
                 // Complete the connection.
                 client.EndConnect(ar);
 
-                ShowMessage("Socket connected to {0}" + client.RemoteEndPoint.ToString());
+                ShowMessage("Socket connected to " + client.RemoteEndPoint.ToString());
 
                 // Signal that the connection has been made.
-                connectDone.Set();
+                ConnectionDone = true;
             }
             catch (Exception e)
             {
-                connectDone.Set();
+                ReconnectInTime(5000);
                 ShowMessage(e.ToString());
             }
         }
@@ -143,8 +133,7 @@ namespace Lithium
                 state.workSocket = client;
 
                 // Begin receiving the data from the remote device.
-                client.BeginReceive(state.buffer, 0, StateObject.BufferSize, 0,
-                    new AsyncCallback(ReceiveCallback), state);
+                client.BeginReceive(state.buffer, 0, StateObject.BufferSize, 0, new AsyncCallback(ReceiveCallback), state);
             }
             catch (Exception e)
             {
@@ -179,8 +168,7 @@ namespace Lithium
                     {
                         response = state.sb.ToString();
                     }
-                    // Signal that all bytes have been received.
-                    receiveDone.Set();
+                    Receive(client);
                 }
             }
             catch (Exception e)
@@ -210,7 +198,6 @@ namespace Lithium
                 ShowMessage("Sent" +  bytesSent + "to server.");
 
                 // Signal that all bytes have been sent.
-                sendDone.Set();
             }
             catch (Exception e)
             {
@@ -235,6 +222,16 @@ namespace Lithium
             NameBox.Document.Blocks.Clear();
             ClientBox.IsReadOnly = true;
             NameBox.IsReadOnly = true;
+            this.StartClient();
+        }
+
+        public void ReconnectInTime(Int32 Time)
+        {
+            Timer tmer = new Timer(TimerCallback, null, Time, System.Threading.Timeout.Infinite);
+        }
+
+        void TimerCallback(object param)
+        {
             this.StartClient();
         }
     }

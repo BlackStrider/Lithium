@@ -34,21 +34,27 @@ namespace Lithium
         }
 
         private Socket _serverSocket;
-        private int _port = 9999;
+        private int _port = 11000;
         private delegate void TextChanger();
 
         public void SetupServerSocket()
         {
             // Получаем информацию о локальном компьютере
-            IPAddress addr = IPAddress.Parse("127.0.0.1");
+            IPAddress addr = IPAddress.Parse("172.17.135.60");
             IPEndPoint myEndpoint = new IPEndPoint(addr, _port);
 
             // Создаем сокет, привязываем его к адресу
             // и начинаем прослушивание
-            _serverSocket = new Socket(myEndpoint.Address.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
-            _serverSocket.Bind(myEndpoint);
+            _serverSocket = new Socket(AddressFamily.InterNetworkV6, SocketType.Stream, ProtocolType.Tcp);
+            _serverSocket.SetSocketOption(SocketOptionLevel.IPv6, (SocketOptionName)27, 0);
+            _serverSocket.Bind(new IPEndPoint(IPAddress.IPv6Any, _port));
             _serverSocket.Listen(10);
             ShowMessage("Server Started");
+
+            IPHostEntry host = Dns.Resolve(Dns.GetHostName());
+            IPAddress ipAddress = host.AddressList[0];
+            foreach (var adder in host.AddressList)
+                ShowMessage("\n" + adder.ToString());
         }
 
         private class UserConnectionInfo
@@ -102,6 +108,7 @@ namespace Lithium
                 int bytesRead = connection.Socket.EndReceive(result);
                 if (bytesRead != 0)
                 {
+                    ShowMessage(Encoding.ASCII.GetString(connection.Buffer, 0, bytesRead));
                     lock (_connections)
                     {
                         foreach (UserConnectionInfo conn in _connections)
@@ -140,7 +147,7 @@ namespace Lithium
         {
             if (ServerBox.Dispatcher.CheckAccess())
             {
-                ServerBox.Text = msg;
+                ServerBox.AppendText(msg);
             }
             else
             {
@@ -148,6 +155,12 @@ namespace Lithium
                     System.Windows.Threading.DispatcherPriority.Normal,
                     new TextChanger(delegate() { this.ChangeTextProperly(msg); }));
             }
+        }
+
+        private void Window_Loaded_1(object sender, RoutedEventArgs e)
+        {
+            ServerBox.IsReadOnly = true;
+            ServerBox.Document.Blocks.Clear();
         }
     }
 }
