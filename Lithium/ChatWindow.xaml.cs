@@ -99,10 +99,7 @@ namespace Lithium
 
                 // Complete the connection.
                 client.EndConnect(ar);
-
                 ShowMessage("Socket connected to " + client.RemoteEndPoint.ToString());
-
-
                 Receive(client);
             }
             catch (Exception e)
@@ -143,21 +140,9 @@ namespace Lithium
 
                 if (bytesRead != 0)
                 {
-                    // There might be more data, so store the data received so far.
-                    //state.sb.Append(Encoding.ASCII.GetString(state.buffer, 0, bytesRead));
                     ShowMessage("\n[From Server]" + Encoding.UTF8.GetString(state.buffer, 0, bytesRead));
                     // Get the rest of the data.
                     client.BeginReceive(state.buffer, 0, StateObject.BufferSize, 0, new AsyncCallback(ReceiveCallback), state);
-                }
-                else
-                {
-                    /*// All the data has arrived; put it in response.
-                    if (state.sb.Length > 1)
-                    {
-                        response = state.sb.ToString();
-                        //ShowMessage(response);
-                    }
-                    Receive(client);*/
                 }
             }
             catch (Exception e)

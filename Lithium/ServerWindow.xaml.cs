@@ -91,12 +91,12 @@ namespace Lithium
             catch (SocketException exc)
             {
                 CloseConnection(connection);
-                ShowMessage("Socket exception: " + exc.SocketErrorCode);  // словим краш
+                ShowMessage("Socket exception: " + exc.SocketErrorCode);  
             }
             catch (Exception exc)
             {
                 CloseConnection(connection);
-                ShowMessage("Exception: " + exc);                           // словим краш
+                ShowMessage("Exception: " + exc);                          
             }
         }
 
@@ -113,7 +113,7 @@ namespace Lithium
                     {
                         foreach (UserConnectionInfo conn in _connections)
                         {
-                            //if (connection != conn)
+                            if (connection != conn)
                             {
                                 conn.Socket.Send(connection.Buffer, bytesRead, SocketFlags.None);
                             }
