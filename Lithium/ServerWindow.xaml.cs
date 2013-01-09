@@ -108,12 +108,12 @@ namespace Lithium
                 int bytesRead = connection.Socket.EndReceive(result);
                 if (bytesRead != 0)
                 {
-                    ShowMessage(Encoding.ASCII.GetString(connection.Buffer, 0, bytesRead));
+                    ShowMessage(Encoding.UTF8.GetString(connection.Buffer, 0, bytesRead));
                     lock (_connections)
                     {
                         foreach (UserConnectionInfo conn in _connections)
                         {
-                            if (connection != conn)
+                            //if (connection != conn)
                             {
                                 conn.Socket.Send(connection.Buffer, bytesRead, SocketFlags.None);
                             }

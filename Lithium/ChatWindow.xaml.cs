@@ -32,7 +32,9 @@ namespace Lithium
 
         private void Button_Click_1(object sender, RoutedEventArgs e)
         {
-            Send(client, "This is a test<EOF>");
+            Send(client, ClientWriteBox.Text);
+            ClientBox.AppendText('\n' + "[" + ChatNameBox.Content + "]" + ClientWriteBox.Text);  //косяк, потом переписать
+            ClientWriteBox.Clear();
         }
 
         public void ShowMessage(string message)
@@ -67,7 +69,6 @@ namespace Lithium
         }
 
         private const int port = 11000;
-        bool ConnectionDone = false;
 
         // The response from the remote device.
         private static String response = String.Empty;
@@ -77,24 +78,11 @@ namespace Lithium
             // Connect to a remote device.
             try
             {
-
                 IPAddress ipAddress = IPAddress.Parse("10.44.5.33");
                 IPEndPoint remoteEP = new IPEndPoint(ipAddress, port);
         
                 // Connect to the remote endpoint.
                 client.BeginConnect(remoteEP, new AsyncCallback(ConnectCallback), client);
-
-                if (ConnectionDone == true)
-                {
-                    // Receive the response from the remote device.
-                    //Receive(client);
-
-                    ShowMessage("Response received : " + response);
-
-                    // Release the socket.
-                    //client.Shutdown(SocketShutdown.Both);
-                    //client.Close();
-                }
             }
             catch (Exception e)
             {
@@ -114,8 +102,8 @@ namespace Lithium
 
                 ShowMessage("Socket connected to " + client.RemoteEndPoint.ToString());
 
-                // Signal that the connection has been made.
-                ConnectionDone = true;
+
+                Receive(client);
             }
             catch (Exception e)
             {
@@ -153,22 +141,23 @@ namespace Lithium
                 // Read data from the remote device.
                 int bytesRead = client.EndReceive(ar);
 
-                if (bytesRead > 0)
+                if (bytesRead != 0)
                 {
                     // There might be more data, so store the data received so far.
-                    state.sb.Append(Encoding.ASCII.GetString(state.buffer, 0, bytesRead));
-
+                    //state.sb.Append(Encoding.ASCII.GetString(state.buffer, 0, bytesRead));
+                    ShowMessage("\n[From Server]" + Encoding.UTF8.GetString(state.buffer, 0, bytesRead));
                     // Get the rest of the data.
                     client.BeginReceive(state.buffer, 0, StateObject.BufferSize, 0, new AsyncCallback(ReceiveCallback), state);
                 }
                 else
                 {
-                    // All the data has arrived; put it in response.
+                    /*// All the data has arrived; put it in response.
                     if (state.sb.Length > 1)
                     {
                         response = state.sb.ToString();
+                        //ShowMessage(response);
                     }
-                    Receive(client);
+                    Receive(client);*/
                 }
             }
             catch (Exception e)
@@ -180,7 +169,7 @@ namespace Lithium
         private void Send(Socket client, String data)
         {
             // Convert the string data to byte data using ASCII encoding.
-            byte[] byteData = Encoding.ASCII.GetBytes(data);
+            byte[] byteData = Encoding.UTF8.GetBytes(data);
 
             // Begin sending the data to the remote device.
             client.BeginSend(byteData, 0, byteData.Length, 0, new AsyncCallback(SendCallback), client);
@@ -195,7 +184,7 @@ namespace Lithium
 
                 // Complete sending the data to the remote device.
                 int bytesSent = client.EndSend(ar);
-                ShowMessage("Sent" +  bytesSent + "to server.");
+                //ShowMessage("Sent" +  bytesSent + "to server.");
 
                 // Signal that all bytes have been sent.
             }

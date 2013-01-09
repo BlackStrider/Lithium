@@ -30,6 +30,7 @@ namespace Lithium
             if (CheckUserLogin(UsernameBox.Text, PasswordBox.Password))
             {
                 ChatWindow AppWindow = new ChatWindow();
+                AppWindow.ChatNameBox.Content = UsernameBox.Text;
                 ServerWindow ServerWind = new ServerWindow();
                 ServerWind.Show();
                 ServerWind.Start();
@@ -43,7 +44,7 @@ namespace Lithium
 
         bool CheckUserLogin(string User, string Pass)
         {
-            if (Equals(User, Username) && Equals(Pass, Password))
+            if (/*Equals(User, Username) &&*/ Equals(Pass, Password))
                 return true;
             else
                 return false;
