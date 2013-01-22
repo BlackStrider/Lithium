@@ -1,4 +1,5 @@
 ﻿using System;
+using System.IO;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -14,6 +15,7 @@ using System.Windows.Media.Imaging;
 using System.Windows.Shapes;
 using System.Net.Sockets;
 using System.Net;
+using System.Runtime.Serialization.Formatters.Binary;
 
 namespace Lithium
 {
@@ -153,11 +155,20 @@ namespace Lithium
 
         private void Send(Socket client, String data)
         {
-            // Convert the string data to byte data using ASCII encoding.
-            byte[] byteData = Encoding.UTF8.GetBytes(data);
-
-            // Begin sending the data to the remote device.
-            client.BeginSend(byteData, 0, byteData.Length, 0, new AsyncCallback(SendCallback), client);
+            // byte HeaderLength = Encoding.UTF8.GetBytes(data.Length);
+            // Convert the string data to byte data using ASCII encoding
+            /*MemoryStream memstr = new MemoryStream();
+            BinaryWriter writer = new BinaryWriter(memstr);
+            writer.Write(data.Length);
+            writer.Write(data);
+            writer.Close();
+             byte[] newData = new byte[4096];
+             Array.Copy(memstr.GetBuffer(), 0, newData, 0, memstr.GetBuffer().Length);*/
+            Packets newPacket = new Packets(0, ChatNameBox.Content.ToString(), data);
+            byte[] newData = new byte[newPacket.PacketLength];
+            newData = newPacket.PrepareMessageToSending();
+            client.BeginSend(newData, 0, newData.Length, 0, new AsyncCallback(SendCallback), client);
+            
         }
 
         private void SendCallback(IAsyncResult ar)
@@ -169,9 +180,6 @@ namespace Lithium
 
                 // Complete sending the data to the remote device.
                 int bytesSent = client.EndSend(ar);
-                //ShowMessage("Sent" +  bytesSent + "to server.");
-
-                // Signal that all bytes have been sent.
             }
             catch (Exception e)
             {

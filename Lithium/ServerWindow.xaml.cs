@@ -14,6 +14,7 @@ using System.Windows.Media.Imaging;
 using System.Windows.Shapes;
 using System.Net.Sockets;
 using System.Net;
+using System.IO;
 
 namespace Lithium
 {
@@ -106,10 +107,24 @@ namespace Lithium
             try
             {
                 int bytesRead = connection.Socket.EndReceive(result);
-                if (bytesRead != 0)
+                MemoryStream memstr = new MemoryStream(connection.Buffer, 0, bytesRead);
+                if (bytesRead > 40)//получаем длину хедера
                 {
-                    ShowMessage(Encoding.UTF8.GetString(connection.Buffer, 0, bytesRead));
-                    lock (_connections)
+                    BinaryReader Reader = new BinaryReader(memstr);
+                    byte Id = Reader.ReadByte();
+                    int PacketSize = Reader.ReadInt32();
+
+                    if (bytesRead >= PacketSize)
+                    {
+                        string Nickname = Reader.ReadString();
+                        string Message = Reader.ReadString();
+                        ShowMessage(Nickname);
+                        ShowMessage(Message);
+                    }
+                    else
+                        connection.Socket.BeginReceive(connection.Buffer, 0, connection.Buffer.Length, SocketFlags.None, new AsyncCallback(ReceiveCallback), connection);
+                    //ShowMessage(Encoding.UTF8.GetString(connection.Buffer, 0, bytesRead));
+                    /*lock (_connections)
                     {
                         foreach (UserConnectionInfo conn in _connections)
                         {
@@ -118,11 +133,11 @@ namespace Lithium
                                 conn.Socket.Send(connection.Buffer, bytesRead, SocketFlags.None);
                             }
                         }
-                    }
+                    }*/
                     connection.Socket.BeginReceive(connection.Buffer, 0, connection.Buffer.Length, SocketFlags.None, new AsyncCallback(ReceiveCallback), connection);
                 }
                 else
-                    CloseConnection(connection);
+                    connection.Socket.BeginReceive(connection.Buffer, 0, connection.Buffer.Length, SocketFlags.None, new AsyncCallback(ReceiveCallback), connection);
             }
             catch (SocketException exc)
             {
