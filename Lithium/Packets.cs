@@ -56,6 +56,14 @@ namespace Lithium
                 return null;
         }
 
+        public Int32 GetHeader
+        {
+            get
+            {
+                return Header;
+            }
+        }
+
         public string GetNickname
         {
             get

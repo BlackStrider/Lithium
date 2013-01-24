@@ -98,16 +98,24 @@ namespace Lithium
         private void ReceiveCallback(IAsyncResult result)
         {
             UserConnectionInfo connection = (UserConnectionInfo)result.AsyncState;
+            Socket client = connection.Socket;
+            Packets newReadPacket = new Packets();
             try
             {
                 int bytesRead = connection.Socket.EndReceive(result);
                 MemoryStream memstr = new MemoryStream(connection.Buffer, 0, bytesRead);
-                Packets newReadPacket = new Packets();
-                Packets dataViewer = newReadPacket.HandleMessagePacket(bytesRead, memstr);
-                if (dataViewer != null)
+                if (bytesRead > 5)//получаем длину хедера
                 {
-                    txtmgr.ShowMessage(ServerBox, dataViewer.GetNickname);
-                    txtmgr.ShowMessage(ServerBox, dataViewer.GetMessage);
+                    Packets dataViewer = newReadPacket.HandleMessagePacket(bytesRead, memstr);
+
+                    if (dataViewer != null)
+                    {
+                        txtmgr.ShowMessage(ServerBox, dataViewer.GetNickname);
+                        txtmgr.ShowMessage(ServerBox, dataViewer.GetMessage);
+                    }
+                    else
+                        connection.Socket.BeginReceive(connection.Buffer, 0, connection.Buffer.Length, SocketFlags.None, new AsyncCallback(ReceiveCallback), connection);
+                    connection.Socket.BeginReceive(connection.Buffer, 0, connection.Buffer.Length, SocketFlags.None, new AsyncCallback(ReceiveCallback), connection);
                 }
                 else
                     connection.Socket.BeginReceive(connection.Buffer, 0, connection.Buffer.Length, SocketFlags.None, new AsyncCallback(ReceiveCallback), connection);
@@ -121,6 +129,21 @@ namespace Lithium
             {
                 CloseConnection(connection);
                 txtmgr.ShowMessage(ServerBox, "Exception: " + exc);
+            }
+        }
+
+        private void SendCallback(IAsyncResult ar)
+        {
+            try
+            {
+                Socket conn = (Socket)ar.AsyncState;
+
+                // Complete sending the data to the remote device.
+                int bytesSent = conn.EndSend(ar);
+            }
+            catch (Exception e)
+            {
+                txtmgr.ShowMessage(ServerBox, e.ToString());
             }
         }
 

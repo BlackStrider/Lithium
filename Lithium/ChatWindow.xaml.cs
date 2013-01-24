@@ -123,12 +123,23 @@ namespace Lithium
                 // Read data from the remote device.
                 int bytesRead = client.EndReceive(ar);
 
-                if (bytesRead != 0)
+                MemoryStream memstr = new MemoryStream(state.buffer, 0, bytesRead);
+                Packets newReadPacket = new Packets();
+                if (bytesRead > 5)//получаем длину хедера
                 {
-                    txtmgr.ShowMessage(ClientBox, "\n[From Server]" + Encoding.UTF8.GetString(state.buffer, 0, bytesRead));
-                    // Get the rest of the data.
-                    client.BeginReceive(state.buffer, 0, StateObject.BufferSize, 0, new AsyncCallback(ReceiveCallback), state);
+                    Packets dataViewer = newReadPacket.HandleMessagePacket(bytesRead, memstr);
+
+                    if (dataViewer != null)
+                    {
+                        txtmgr.ShowMessage(ClientBox, dataViewer.GetNickname);
+                        txtmgr.ShowMessage(ClientBox, dataViewer.GetMessage);
+                    }
+                    else
+                        client.BeginReceive(state.buffer, 0, state.buffer.Length, SocketFlags.None, new AsyncCallback(ReceiveCallback), state);
+                    client.BeginReceive(state.buffer, 0, state.buffer.Length, SocketFlags.None, new AsyncCallback(ReceiveCallback), state);
                 }
+                else
+                    client.BeginReceive(state.buffer, 0, state.buffer.Length, SocketFlags.None, new AsyncCallback(ReceiveCallback), state);
             }
             catch (Exception e)
             {
