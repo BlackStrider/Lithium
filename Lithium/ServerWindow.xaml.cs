@@ -108,33 +108,12 @@ namespace Lithium
             {
                 int bytesRead = connection.Socket.EndReceive(result);
                 MemoryStream memstr = new MemoryStream(connection.Buffer, 0, bytesRead);
-                if (bytesRead > 40)//получаем длину хедера
+                Packets newReadPacket = new Packets();
+                Packets dataViewer = newReadPacket.HandleMessagePacket(bytesRead, memstr);
+                if (dataViewer != null)
                 {
-                    BinaryReader Reader = new BinaryReader(memstr);
-                    byte Id = Reader.ReadByte();
-                    int PacketSize = Reader.ReadInt32();
-
-                    if (bytesRead >= PacketSize)
-                    {
-                        string Nickname = Reader.ReadString();
-                        string Message = Reader.ReadString();
-                        ShowMessage(Nickname);
-                        ShowMessage(Message);
-                    }
-                    else
-                        connection.Socket.BeginReceive(connection.Buffer, 0, connection.Buffer.Length, SocketFlags.None, new AsyncCallback(ReceiveCallback), connection);
-                    //ShowMessage(Encoding.UTF8.GetString(connection.Buffer, 0, bytesRead));
-                    /*lock (_connections)
-                    {
-                        foreach (UserConnectionInfo conn in _connections)
-                        {
-                            if (connection != conn)
-                            {
-                                conn.Socket.Send(connection.Buffer, bytesRead, SocketFlags.None);
-                            }
-                        }
-                    }*/
-                    connection.Socket.BeginReceive(connection.Buffer, 0, connection.Buffer.Length, SocketFlags.None, new AsyncCallback(ReceiveCallback), connection);
+                    ShowMessage(dataViewer.GetNickname);
+                    ShowMessage(dataViewer.GetMessage);
                 }
                 else
                     connection.Socket.BeginReceive(connection.Buffer, 0, connection.Buffer.Length, SocketFlags.None, new AsyncCallback(ReceiveCallback), connection);

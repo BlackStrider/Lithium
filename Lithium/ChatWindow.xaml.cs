@@ -155,20 +155,10 @@ namespace Lithium
 
         private void Send(Socket client, String data)
         {
-            // byte HeaderLength = Encoding.UTF8.GetBytes(data.Length);
-            // Convert the string data to byte data using ASCII encoding
-            /*MemoryStream memstr = new MemoryStream();
-            BinaryWriter writer = new BinaryWriter(memstr);
-            writer.Write(data.Length);
-            writer.Write(data);
-            writer.Close();
-             byte[] newData = new byte[4096];
-             Array.Copy(memstr.GetBuffer(), 0, newData, 0, memstr.GetBuffer().Length);*/
             Packets newPacket = new Packets(0, ChatNameBox.Content.ToString(), data);
             byte[] newData = new byte[newPacket.PacketLength];
             newData = newPacket.PrepareMessageToSending();
-            client.BeginSend(newData, 0, newData.Length, 0, new AsyncCallback(SendCallback), client);
-            
+            client.BeginSend(newData, 0, newData.Length, 0, new AsyncCallback(SendCallback), client);    
         }
 
         private void SendCallback(IAsyncResult ar)

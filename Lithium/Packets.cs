@@ -15,6 +15,8 @@ namespace Lithium
         private string          Message;            // Message
         private MemoryStream    memstr;
 
+        public Packets() { }
+
         public Packets(byte Id, string Nickname, string Message)
         {
             this.Id = Id;
@@ -39,6 +41,39 @@ namespace Lithium
             return newData;
         }
 
+        public Packets HandleMessagePacket(int bytesRead, MemoryStream memostr)
+        {
+            BinaryReader PacketReader = new BinaryReader(memostr);
+            Id = PacketReader.ReadByte();
+            Header = PacketReader.ReadInt32();
+            if (bytesRead >= (8 + 32 + Header))
+            {
+                Nickname = PacketReader.ReadString();
+                Message = PacketReader.ReadString();
+                Packets newPacket = new Packets(this.Id, this.Nickname, this.Message);
+                return newPacket;
+            }
+            else
+                return null;
+        }
+
         public Int32 PacketLength { get; private set; }
+
+        public string GetNickname
+        {
+            get
+            {
+                return Nickname;
+            }
+        }
+
+        public string GetMessage
+        {
+            get
+            {
+                return Message;
+            }
+        }
+
     }
 }
