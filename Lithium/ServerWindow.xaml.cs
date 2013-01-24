@@ -28,15 +28,9 @@ namespace Lithium
             InitializeComponent();
         }
 
-        public void ShowMessage(string message)
-        {
-            Thread mChanger = new Thread(new ThreadStart(delegate() { this.ChangeTextProperly(message); }));
-            mChanger.Start();
-        }
-
         private Socket _serverSocket;
         private int _port = 11000;
-        private delegate void TextChanger();
+        TextManager txtmgr = new TextManager();
 
         public void SetupServerSocket()
         {
@@ -50,12 +44,12 @@ namespace Lithium
             _serverSocket.SetSocketOption(SocketOptionLevel.IPv6, (SocketOptionName)27, 0);
             _serverSocket.Bind(new IPEndPoint(IPAddress.IPv6Any, _port));
             _serverSocket.Listen(10);
-            ShowMessage("Server Started");
+            txtmgr.ShowMessage(ServerBox, "Server Started");
 
             IPHostEntry host = Dns.Resolve(Dns.GetHostName());
             IPAddress ipAddress = host.AddressList[0];
             foreach (var adder in host.AddressList)
-                ShowMessage("\n" + adder.ToString());
+                txtmgr.ShowMessage(ServerBox, "\n" + adder.ToString());
         }
 
         private class UserConnectionInfo
@@ -92,12 +86,12 @@ namespace Lithium
             catch (SocketException exc)
             {
                 CloseConnection(connection);
-                ShowMessage("Socket exception: " + exc.SocketErrorCode);  
+                txtmgr.ShowMessage(ServerBox, "Socket exception: " + exc.SocketErrorCode);  
             }
             catch (Exception exc)
             {
                 CloseConnection(connection);
-                ShowMessage("Exception: " + exc);                          
+                txtmgr.ShowMessage(ServerBox, "Exception: " + exc);                          
             }
         }
 
@@ -112,8 +106,8 @@ namespace Lithium
                 Packets dataViewer = newReadPacket.HandleMessagePacket(bytesRead, memstr);
                 if (dataViewer != null)
                 {
-                    ShowMessage(dataViewer.GetNickname);
-                    ShowMessage(dataViewer.GetMessage);
+                    txtmgr.ShowMessage(ServerBox, dataViewer.GetNickname);
+                    txtmgr.ShowMessage(ServerBox, dataViewer.GetMessage);
                 }
                 else
                     connection.Socket.BeginReceive(connection.Buffer, 0, connection.Buffer.Length, SocketFlags.None, new AsyncCallback(ReceiveCallback), connection);
@@ -121,12 +115,12 @@ namespace Lithium
             catch (SocketException exc)
             {
                 CloseConnection(connection);
-                ShowMessage("Socket exception: " + exc.SocketErrorCode);
+                txtmgr.ShowMessage(ServerBox, "Socket exception: " + exc.SocketErrorCode);
             }
             catch (Exception exc)
             {
                 CloseConnection(connection);
-                ShowMessage("Exception: " + exc);
+                txtmgr.ShowMessage(ServerBox, "Exception: " + exc);
             }
         }
 
@@ -135,20 +129,6 @@ namespace Lithium
             user.Socket.Close();
             lock (_connections)
                 _connections.Remove(user);
-        }
-
-        private void ChangeTextProperly(string msg)
-        {
-            if (ServerBox.Dispatcher.CheckAccess())
-            {
-                ServerBox.AppendText(msg);
-            }
-            else
-            {
-                ServerBox.Dispatcher.Invoke(
-                    System.Windows.Threading.DispatcherPriority.Normal,
-                    new TextChanger(delegate() { this.ChangeTextProperly(msg); }));
-            }
         }
 
         private void Window_Loaded_1(object sender, RoutedEventArgs e)

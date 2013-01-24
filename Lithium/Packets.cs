@@ -36,7 +36,6 @@ namespace Lithium
             PacketWriter.Flush();
             PacketWriter.Close();
             byte[] newData = new byte[memstr.GetBuffer().Length];
-            PacketLength = memstr.GetBuffer().Length;
             Array.Copy(memstr.GetBuffer(), 0, newData, 0, memstr.GetBuffer().Length);
             return newData;
         }
@@ -46,7 +45,7 @@ namespace Lithium
             BinaryReader PacketReader = new BinaryReader(memostr);
             Id = PacketReader.ReadByte();
             Header = PacketReader.ReadInt32();
-            if (bytesRead >= (8 + 32 + Header))
+            if (bytesRead >= (1 + 4 + Header))
             {
                 Nickname = PacketReader.ReadString();
                 Message = PacketReader.ReadString();
@@ -56,8 +55,6 @@ namespace Lithium
             else
                 return null;
         }
-
-        public Int32 PacketLength { get; private set; }
 
         public string GetNickname
         {

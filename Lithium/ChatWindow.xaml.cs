@@ -16,6 +16,7 @@ using System.Windows.Shapes;
 using System.Net.Sockets;
 using System.Net;
 using System.Runtime.Serialization.Formatters.Binary;
+using System.Timers;
 
 namespace Lithium
 {
@@ -29,20 +30,16 @@ namespace Lithium
             InitializeComponent();
         }
 
-        private delegate void TextChanger();
         Socket client = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
+        System.Timers.Timer ReconnectionTimer = new System.Timers.Timer();
+        TextManager txtmgr = new TextManager();
+        private const int port = 11000;
 
         private void Button_Click_1(object sender, RoutedEventArgs e)
         {
             Send(client, ClientWriteBox.Text);
             ClientBox.AppendText('\n' + "[" + ChatNameBox.Content + "]" + ClientWriteBox.Text);  //косяк, потом переписать
             ClientWriteBox.Clear();
-        }
-
-        public void ShowMessage(string message)
-        {
-            Thread mChanger = new Thread(new ThreadStart(delegate() { this.ChangeTextProperly(message); }));
-            mChanger.Start();
         }
 
         public class StateObject
@@ -56,21 +53,6 @@ namespace Lithium
             // Received data string.
             public StringBuilder sb = new StringBuilder();
         }
-
-        private void ChangeTextProperly(string msg)
-        {
-            if (ClientBox.Dispatcher.CheckAccess())
-                {
-                    ClientBox.AppendText(msg);
-                    return;
-                }
-                else
-                {
-                    ClientBox.Dispatcher.BeginInvoke(DispatcherPriority.Normal, new TextChanger(delegate() { this.ChangeTextProperly(msg); }));
-                }
-        }
-
-        private const int port = 11000;
 
         // The response from the remote device.
         private static String response = String.Empty;
@@ -88,7 +70,7 @@ namespace Lithium
             }
             catch (Exception e)
             {
-                ShowMessage(e.ToString());
+                //ShowMessage(e.ToString()); ToDo: add to log file
             }
         }
 
@@ -101,13 +83,14 @@ namespace Lithium
 
                 // Complete the connection.
                 client.EndConnect(ar);
-                ShowMessage("Socket connected to " + client.RemoteEndPoint.ToString());
+                txtmgr.ShowMessage(ClientBox, "Socket connected to " + client.RemoteEndPoint.ToString());
                 Receive(client);
+                ReconnectionTimer.Stop();
             }
             catch (Exception e)
             {
                 ReconnectInTime(5000);
-                ShowMessage(e.ToString());
+                txtmgr.ShowMessage(ClientBox, "Unable connect to server");
             }
         }
 
@@ -124,7 +107,7 @@ namespace Lithium
             }
             catch (Exception e)
             {
-                ShowMessage(e.ToString());
+                txtmgr.ShowMessage(ClientBox, e.ToString());
             }
         }
 
@@ -142,22 +125,21 @@ namespace Lithium
 
                 if (bytesRead != 0)
                 {
-                    ShowMessage("\n[From Server]" + Encoding.UTF8.GetString(state.buffer, 0, bytesRead));
+                    txtmgr.ShowMessage(ClientBox, "\n[From Server]" + Encoding.UTF8.GetString(state.buffer, 0, bytesRead));
                     // Get the rest of the data.
                     client.BeginReceive(state.buffer, 0, StateObject.BufferSize, 0, new AsyncCallback(ReceiveCallback), state);
                 }
             }
             catch (Exception e)
             {
-                ShowMessage(e.ToString());
+                txtmgr.ShowMessage(ClientBox, e.ToString());
             }
         }
 
         private void Send(Socket client, String data)
         {
             Packets newPacket = new Packets(0, ChatNameBox.Content.ToString(), data);
-            byte[] newData = new byte[newPacket.PacketLength];
-            newData = newPacket.PrepareMessageToSending();
+            byte[] newData = newPacket.PrepareMessageToSending();
             client.BeginSend(newData, 0, newData.Length, 0, new AsyncCallback(SendCallback), client);    
         }
 
@@ -173,7 +155,7 @@ namespace Lithium
             }
             catch (Exception e)
             {
-                ShowMessage(e.ToString());
+                txtmgr.ShowMessage(ClientBox, e.ToString());
             }
         }
 
@@ -199,12 +181,14 @@ namespace Lithium
 
         public void ReconnectInTime(Int32 Time)
         {
-            Timer tmer = new Timer(TimerCallback, null, Time, System.Threading.Timeout.Infinite);
+            ReconnectionTimer.Interval = Time;
+            ReconnectionTimer.Elapsed += new ElapsedEventHandler(TimerEvent);
+            ReconnectionTimer.Enabled = true;
         }
 
-        void TimerCallback(object param)
+        private void TimerEvent(object source, ElapsedEventArgs e)
         {
-            this.StartClient();
+            StartClient();
         }
     }
 }

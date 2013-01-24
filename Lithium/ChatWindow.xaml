@@ -3,7 +3,7 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         Title="Lithium" Height="536.26" Width="665.017" Loaded="Lit_Loaded">
     <Grid>
-        <Button Content="Send" HorizontalAlignment="Left" Margin="494,467,0,0" VerticalAlignment="Top" Width="148" Click="Button_Click_1" Height="23"/>
+        <Button x:Name="SendBtn" Content="Send" HorizontalAlignment="Left" Margin="494,467,0,0" VerticalAlignment="Top" Width="148" Click="Button_Click_1" Height="23"/>
         <RichTextBox x:Name="NameBox" HorizontalAlignment="Left" Height="419" Margin="494,43,0,0" VerticalAlignment="Top" Width="148">
             <FlowDocument>
                 <Paragraph>
