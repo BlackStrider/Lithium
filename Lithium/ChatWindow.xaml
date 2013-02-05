@@ -13,7 +13,7 @@
         </RichTextBox>
         <Label x:Name="ChatNameBox" Content="Nickname" HorizontalAlignment="Left" Margin="494,10,0,0" VerticalAlignment="Top" Width="148"/>
         <TextBox x:Name="ClientWriteBox" HorizontalAlignment="Left" Height="23" Margin="10,467,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="479"/>
-        <RichTextBox x:Name="ClientBox" HorizontalAlignment="Left" Height="419" Margin="10,43,0,0" VerticalAlignment="Top" Width="479">
+        <RichTextBox x:Name="ClientBox" HorizontalAlignment="Left" Height="419" Margin="10,43,0,0" VerticalAlignment="Top" Width="479" Foreground="Black">
             <RichTextBox.Resources>
                 <Style TargetType="{x:Type Paragraph}">
                     <Setter Property="Margin" Value="0"/>

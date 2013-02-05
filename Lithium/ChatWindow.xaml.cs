@@ -38,7 +38,7 @@ namespace Lithium
         private void Button_Click_1(object sender, RoutedEventArgs e)
         {
             Send(client, ClientWriteBox.Text);
-            ClientBox.AppendText('\n' + "[" + ChatNameBox.Content + "]" + ClientWriteBox.Text);  //косяк, потом переписать
+            txtmgr.ShowMessage(ClientBox, ChatNameBox.Content.ToString(), ClientWriteBox.Text);  //косяк, потом переписать
             ClientWriteBox.Clear();
         }
 
@@ -83,14 +83,14 @@ namespace Lithium
 
                 // Complete the connection.
                 client.EndConnect(ar);
-                txtmgr.ShowMessage(ClientBox, "Socket connected to " + client.RemoteEndPoint.ToString());
+                txtmgr.ShowSystemMessage(ClientBox, "Socket connected to " + client.RemoteEndPoint.ToString() + "\n");
                 Receive(client);
                 ReconnectionTimer.Stop();
             }
             catch (Exception e)
             {
                 ReconnectInTime(5000);
-                txtmgr.ShowMessage(ClientBox, "Unable connect to server");
+                txtmgr.ShowSystemMessage(ClientBox, "Unable connect to server");
             }
         }
 
@@ -107,7 +107,7 @@ namespace Lithium
             }
             catch (Exception e)
             {
-                txtmgr.ShowMessage(ClientBox, e.ToString());
+                txtmgr.ShowSystemMessage(ClientBox, e.ToString());
             }
         }
 
@@ -131,8 +131,7 @@ namespace Lithium
 
                     if (dataViewer != null)
                     {
-                        txtmgr.ShowMessage(ClientBox, dataViewer.GetNickname);
-                        txtmgr.ShowMessage(ClientBox, dataViewer.GetMessage);
+                        txtmgr.ShowMessage(ClientBox, dataViewer.GetNickname, dataViewer.GetMessage);
                     }
                     else
                         client.BeginReceive(state.buffer, 0, state.buffer.Length, SocketFlags.None, new AsyncCallback(ReceiveCallback), state);
@@ -143,7 +142,7 @@ namespace Lithium
             }
             catch (Exception e)
             {
-                txtmgr.ShowMessage(ClientBox, e.ToString());
+                txtmgr.ShowSystemMessage(ClientBox, e.ToString());
             }
         }
 
@@ -166,7 +165,7 @@ namespace Lithium
             }
             catch (Exception e)
             {
-                txtmgr.ShowMessage(ClientBox, e.ToString());
+                txtmgr.ShowSystemMessage(ClientBox, e.ToString());
             }
         }
 

@@ -44,12 +44,12 @@ namespace Lithium
             _serverSocket.SetSocketOption(SocketOptionLevel.IPv6, (SocketOptionName)27, 0);
             _serverSocket.Bind(new IPEndPoint(IPAddress.IPv6Any, _port));
             _serverSocket.Listen(10);
-            txtmgr.ShowMessage(ServerBox, "Server Started");
+            txtmgr.ShowSystemMessage(ServerBox, "Server Started\n");
 
             IPHostEntry host = Dns.Resolve(Dns.GetHostName());
             IPAddress ipAddress = host.AddressList[0];
             foreach (var adder in host.AddressList)
-                txtmgr.ShowMessage(ServerBox, "\n" + adder.ToString());
+                txtmgr.ShowSystemMessage(ServerBox, adder.ToString());
         }
 
         private class UserConnectionInfo
@@ -86,12 +86,12 @@ namespace Lithium
             catch (SocketException exc)
             {
                 CloseConnection(connection);
-                txtmgr.ShowMessage(ServerBox, "Socket exception: " + exc.SocketErrorCode);  
+                txtmgr.ShowSystemMessage(ServerBox, "Socket exception: " + exc.SocketErrorCode);  
             }
             catch (Exception exc)
             {
                 CloseConnection(connection);
-                txtmgr.ShowMessage(ServerBox, "Exception: " + exc);                          
+                txtmgr.ShowSystemMessage(ServerBox, "Exception: " + exc);                          
             }
         }
 
@@ -110,8 +110,7 @@ namespace Lithium
 
                     if (dataViewer != null)
                     {
-                        txtmgr.ShowMessage(ServerBox, dataViewer.GetNickname);
-                        txtmgr.ShowMessage(ServerBox, dataViewer.GetMessage);
+                        txtmgr.ShowMessage(ServerBox, dataViewer.GetNickname, dataViewer.GetMessage);
                     }
                     else
                         connection.Socket.BeginReceive(connection.Buffer, 0, connection.Buffer.Length, SocketFlags.None, new AsyncCallback(ReceiveCallback), connection);
@@ -123,12 +122,12 @@ namespace Lithium
             catch (SocketException exc)
             {
                 CloseConnection(connection);
-                txtmgr.ShowMessage(ServerBox, "Socket exception: " + exc.SocketErrorCode);
+                txtmgr.ShowSystemMessage(ServerBox, "Socket exception: " + exc.SocketErrorCode);
             }
             catch (Exception exc)
             {
                 CloseConnection(connection);
-                txtmgr.ShowMessage(ServerBox, "Exception: " + exc);
+                txtmgr.ShowSystemMessage(ServerBox, "Exception: " + exc);
             }
         }
 
@@ -143,7 +142,7 @@ namespace Lithium
             }
             catch (Exception e)
             {
-                txtmgr.ShowMessage(ServerBox, e.ToString());
+                txtmgr.ShowSystemMessage(ServerBox, e.ToString());
             }
         }
 

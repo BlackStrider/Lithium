@@ -9,11 +9,11 @@ namespace Lithium
 {
     class Packets
     {
-        private byte            Id;                 // First byte is packet Id
-        private Int32           Header;             // First 32 bits is length of message + length of nickname
-        private string          Nickname;           // Sender nickname
-        private string          Message;            // Message
-        private MemoryStream    memstr;
+        private byte                    Id;                 // First byte is packet Id
+        private Int32                   Header;             // First 32 bits is length of message + length of nickname
+        private string                  Nickname;           // Sender nickname
+        private string                  Message;            // Message
+        private MemoryStream            memstr;
 
         public Packets() { }
 
@@ -49,8 +49,7 @@ namespace Lithium
             {
                 Nickname = PacketReader.ReadString();
                 Message = PacketReader.ReadString();
-                Packets newPacket = new Packets(this.Id, this.Nickname, this.Message);
-                return newPacket;
+                return new Packets(this.Id, this.Nickname, this.Message);
             }
             else
                 return null;
