@@ -1,5 +1,6 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -9,40 +10,69 @@ namespace Lithium
     class PacketHandlers : Packets //for future use
     {
         private byte Id;
+        private Int32 Header;             
+        private Int32 bytesRead;
+        private string Nickname;          
+        private string Message;           
 
-        public PacketHandlers(byte Id)
+        public PacketHandlers()
         {
-            this.Id = Id;
         }
 
-        PacketHandlers GetHandlerById(byte Id)
+        public Packets GetPacket(int bytesRead, MemoryStream memostr)
         {
+            this.bytesRead = bytesRead;
+            Nickname = Message = "";
+            BinaryReader PacketReader = new BinaryReader(memostr);
+            Id = PacketReader.ReadByte();
             switch (Id)
             {
                 case 0:
-                    return MessageHandler();
+                    return MessageHandler(PacketReader);
                 case 1:
-                    return PingPongHandler();
+                    return PingPongHandler(PacketReader);
                 case 2:
-                    return ServerMessageHandler();
+                    return ServerMessageHandler(PacketReader);
                 default :
                     return null;
             }
         }
 
-        private PacketHandlers MessageHandler()
+        private Packets MessageHandler(BinaryReader PacketReader)
         {
-            return new PacketHandlers(1);
+            Header = PacketReader.ReadInt32();
+            if (bytesRead >= (1 + 4 + Header))
+            {
+                Nickname = PacketReader.ReadString();
+                Message = PacketReader.ReadString();
+                return new Packets(Id, Nickname, Message);
+            }
+            else
+                return null;
         }
 
-        private PacketHandlers PingPongHandler()
+        private Packets PingPongHandler(BinaryReader PacketReader)
         {
-            return new PacketHandlers(1);
+            Header = PacketReader.ReadInt32();
+            if (bytesRead >= (1 + 4 + Header))
+            {
+                Message = "Test";
+                return new Packets(Id, Nickname, Message);
+            }
+            else
+                return null;
         }
 
-        private PacketHandlers ServerMessageHandler()
+        private Packets ServerMessageHandler(BinaryReader PacketReader)
         {
-            return new PacketHandlers(1);
+            Header = PacketReader.ReadInt32();
+            if (bytesRead >= (1 + 4 + Header))
+            {
+                Message = PacketReader.ReadString();
+                return new Packets(Id, Nickname, Message);
+            }
+            else
+                return null;
         }
     }
 }
