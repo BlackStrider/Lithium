@@ -10,8 +10,8 @@ namespace Lithium
     class PacketHandlers : Packets //for future use
     {
         private byte Id;
-        private Int32 Header;             
-        private Int32 bytesRead;
+        private Int32 Header;
+        private BinaryReader PacketReader;
         private string Nickname;          
         private string Message;           
 
@@ -19,60 +19,43 @@ namespace Lithium
         {
         }
 
-        public Packets GetPacket(int bytesRead, MemoryStream memostr)
+        public Int32 GetPacketByID(MemoryStream memostr)
         {
-            this.bytesRead = bytesRead;
-            Nickname = Message = "";
-            BinaryReader PacketReader = new BinaryReader(memostr);
+            PacketReader = new BinaryReader(memostr);
             Id = PacketReader.ReadByte();
+            Header = PacketReader.ReadInt32();
+            Nickname = PacketReader.ReadString();
+            Message = PacketReader.ReadString();
             switch (Id)
             {
                 case 0:
-                    return MessageHandler(PacketReader);
+                    return 0;
                 case 1:
-                    return PingPongHandler(PacketReader);
+                    return 1;
                 case 2:
-                    return ServerMessageHandler(PacketReader);
+                    return 2;
                 default :
-                    return null;
+                    return -1;
             }
         }
 
-        private Packets MessageHandler(BinaryReader PacketReader)
+        public Int32 GetHeader()
         {
-            Header = PacketReader.ReadInt32();
-            if (bytesRead >= (1 + 4 + Header))
-            {
-                Nickname = PacketReader.ReadString();
-                Message = PacketReader.ReadString();
-                return new Packets(Id, Nickname, Message);
-            }
-            else
-                return null;
+            return Header;
         }
 
-        private Packets PingPongHandler(BinaryReader PacketReader)
+        public string GetNickname()
         {
-            Header = PacketReader.ReadInt32();
-            if (bytesRead >= (1 + 4 + Header))
-            {
-                Message = "Test";
-                return new Packets(Id, Nickname, Message);
-            }
-            else
-                return null;
+            if (Nickname.Length > 0)
+                return Nickname;
+            else return null;
         }
 
-        private Packets ServerMessageHandler(BinaryReader PacketReader)
+        public string GetMessage()
         {
-            Header = PacketReader.ReadInt32();
-            if (bytesRead >= (1 + 4 + Header))
-            {
-                Message = PacketReader.ReadString();
-                return new Packets(Id, Nickname, Message);
-            }
-            else
-                return null;
+            if (Message.Length > 0)
+                return Message;
+            else return null;
         }
     }
 }
