@@ -19,7 +19,7 @@ namespace Lithium
         {
         }
 
-        public Int32 GetPacketByID(MemoryStream memostr)
+        public Int32 GetPacketStructure(MemoryStream memostr)
         {
             PacketReader = new BinaryReader(memostr);
             Id = PacketReader.ReadByte();
