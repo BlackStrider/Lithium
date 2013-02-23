@@ -18,25 +18,23 @@ namespace Lithium
         public PacketHandlers()
         {
         }
+        
+        private PacketHandlers(byte ID, Int32 Header, string Nickname, string Message)
+        {
+            this.Id = ID;
+            this.Header = Header;
+            this.Nickname = Nickname;
+            this.Message = Message;
+        }
 
-        public Int32 GetPacketStructure(MemoryStream memostr)
+        public PacketHandlers GetPacketStructure(MemoryStream memostr)
         {
             PacketReader = new BinaryReader(memostr);
             Id = PacketReader.ReadByte();
             Header = PacketReader.ReadInt32();
             Nickname = PacketReader.ReadString();
             Message = PacketReader.ReadString();
-            switch (Id)
-            {
-                case 0:
-                    return 0;
-                case 1:
-                    return 1;
-                case 2:
-                    return 2;
-                default :
-                    return -1;
-            }
+            return new PacketHandlers(Id, Header, Nickname, Message);
         }
 
         public Int32 GetHeader()
